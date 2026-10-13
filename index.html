@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scrap Shop — Morgan Cronander-Buis</title>
+  <meta name="description" content="Pick a fabric scrap and a pattern, and request a handmade bowl cozy, pot holder, or bag." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f6f1e7;
+      --paper:     #fffdf8;
+      --ink:       #2b2622;
+      --muted:     #7a6f63;
+      --line:      #e3d9c6;
+      --gold:      #b8902f;
+      --gold-soft: rgba(184,144,47,.12);
+      --thread:    #c25b3c;
+      --ok:        #4e7a52;
+      --radius:    14px;
+      --shadow:    0 1px 2px rgba(60,40,10,.06), 0 8px 24px rgba(60,40,10,.06);
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg:#14131a; --paper:#1d1c26; --ink:#f0ece4; --muted:#9a93a8; --line:#2f2d3d;
+        --gold:#c9a84c; --gold-soft:rgba(201,168,76,.12); --thread:#e07a5a; --ok:#7fb184;
+        --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25); color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg:#14131a; --paper:#1d1c26; --ink:#f0ece4; --muted:#9a93a8; --line:#2f2d3d;
+      --gold:#c9a84c; --gold-soft:rgba(201,168,76,.12); --thread:#e07a5a; --ok:#7fb184;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25); color-scheme: dark;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Raleway', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem clamp(1rem, 4vw, 2.5rem);
+      border-bottom: 1px dashed var(--line);
+    }
+    .topbar a { color: var(--muted); text-decoration: none; font-size: .85rem; font-weight: 500; }
+    .topbar a:hover { color: var(--gold); }
+    .logo { font-family: 'Playfair Display', serif; color: var(--gold) !important; font-size: 1.1rem !important; }
+
+    /* ── Hero ── */
+    .hero {
+      max-width: 1180px; margin: 0 auto;
+      padding: 3.5rem clamp(1rem, 4vw, 2.5rem) 2rem;
+    }
+    .eyebrow {
+      font-size: .75rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--thread); margin-bottom: .8rem;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.1; margin-bottom: 1rem;
+    }
+    h1 em { color: var(--gold); font-weight: 400; }
+    .lede { color: var(--muted); max-width: 580px; font-size: 1.05rem; }
+    .steps-strip {
+      display: flex; flex-wrap: wrap; gap: .6rem 1.6rem; margin-top: 1.6rem;
+      font-size: .85rem; color: var(--muted);
+    }
+    .steps-strip span b {
+      display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; margin-right: .4rem;
+      border-radius: 50%; border: 1px dashed var(--gold); color: var(--gold); font-size: .75rem;
+    }
+
+    /* ── Layout ── */
+    .layout {
+      max-width: 1180px; margin: 0 auto;
+      padding: 0 clamp(1rem, 4vw, 2.5rem) 4rem;
+      display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 2.5rem; align-items: start;
+    }
+    .step { margin-bottom: 3rem; }
+    .step-head {
+      display: flex; justify-content: space-between; align-items: end; gap: 1rem; flex-wrap: wrap;
+      margin-bottom: 1.1rem;
+    }
+    .step-label { font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
+    h2 { font-family: 'Playfair Display', serif; font-size: 1.7rem; line-height: 1.2; }
+    .hint { color: var(--muted); font-size: .85rem; }
+
+    /* ── Filters ── */
+    .filters { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
+    .chip {
+      border: 1px solid var(--line); background: var(--paper); border-radius: 99px;
+      padding: .3rem .8rem; font-size: .78rem; font-weight: 600; cursor: pointer; color: var(--muted);
+      text-transform: capitalize;
+    }
+    .chip:hover { border-color: var(--gold); color: var(--ink); }
+    .chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .chip.ghost { border-style: dashed; }
+    .toggle { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; color: var(--muted); cursor: pointer; margin-left: .4rem; }
+
+    /* ── Fabric grid ── */
+    .fabric-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem;
+    }
+    .fabric {
+      position: relative; border: 1px solid var(--line); border-radius: var(--radius);
+      background: var(--paper); padding: .55rem .55rem .7rem; cursor: pointer; text-align: left;
+      transition: transform .15s, border-color .15s, box-shadow .15s;
+    }
+    .fabric:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .fabric .sw {
+      aspect-ratio: 1; border-radius: 9px; background-size: cover; background-position: center;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
+      display: block;
+      /* pinking-shear bottom edge */
+      -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 5px) no-repeat,
+                    conic-gradient(from 135deg at top, #000 90deg, #0000 0) bottom left / 10px 5px repeat-x;
+              mask: linear-gradient(#000 0 0) top / 100% calc(100% - 5px) no-repeat,
+                    conic-gradient(from 135deg at top, #000 90deg, #0000 0) bottom left / 10px 5px repeat-x;
+    }
+    .fabric .nm { display: block; font-weight: 600; font-size: .88rem; margin-top: .55rem; line-height: 1.3; }
+    .fabric .meta { display: block; font-size: .72rem; color: var(--muted); text-transform: capitalize; }
+    .fabric[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
+    .fabric[aria-pressed="true"]::after {
+      content: "✓"; position: absolute; top: .9rem; right: .9rem; width: 1.6rem; height: 1.6rem;
+      display: grid; place-items: center; border-radius: 50%; background: var(--gold); color: #fff;
+      font-weight: 700; font-size: .85rem; box-shadow: 0 2px 6px rgba(0,0,0,.2);
+    }
+    .fabric.special { border-style: dashed; border-color: var(--gold); }
+    .fabric.special .sw { display: grid; place-items: center; }
+    .fabric.special .meta { text-transform: none; }
+    .fabric .qm {
+      font-family: 'Playfair Display', serif; font-size: 3.2rem; font-weight: 700; line-height: 1;
+      color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.35);
+      width: 4.2rem; height: 4.2rem; display: grid; place-items: center; border-radius: 50%;
+      background: rgba(0,0,0,.18); border: 2px dashed rgba(255,255,255,.8);
+    }
+    .fabric:disabled { cursor: not-allowed; opacity: .5; }
+    .fabric:disabled .sw { filter: grayscale(.8); }
+    .fabric .soldout {
+      position: absolute; top: 1.4rem; left: 50%; transform: translateX(-50%) rotate(-6deg);
+      background: var(--paper); color: var(--thread); border: 1px dashed var(--thread);
+      font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+      padding: .15rem .5rem; border-radius: 4px; white-space: nowrap;
+    }
+
+    /* ── Pattern grid ── */
+    .pattern-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+    .pattern {
+      border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper);
+      padding: 1rem; cursor: pointer; text-align: left; display: flex; flex-direction: column; gap: .5rem;
+      transition: transform .15s, border-color .15s, box-shadow .15s; position: relative;
+    }
+    .pattern:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .pattern[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
+    .pattern:disabled { cursor: not-allowed; opacity: .45; }
+    .pattern.special { border-style: dashed; border-color: var(--gold); }
+    .pattern .thumb { height: 96px; display: grid; place-items: center; }
+    .pattern .thumb .item-art { width: 96px; height: 96px; }
+    .pattern .nm { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; }
+    .pattern .bl { font-size: .82rem; color: var(--muted); line-height: 1.5; }
+    .pattern .why { font-size: .72rem; font-weight: 700; color: var(--thread); letter-spacing: .05em; }
+
+    /* item art: fabric clipped into the item silhouette */
+    .item-art { position: relative; }
+    .item-art .fill {
+      position: absolute; inset: 0; background: var(--line);
+      -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+      -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+      background-size: cover; background-position: center;
+    }
+    .item-art svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+    /* ── Request card ── */
+    .request {
+      position: sticky; top: 1.25rem;
+      background: var(--paper); border: 1px solid var(--line); border-radius: 18px;
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    .preview {
+      background:
+        radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 1.5px) 0 0 / 14px 14px,
+        var(--bg);
+      padding: 1.6rem; display: grid; place-items: center; border-bottom: 1px dashed var(--line);
+      min-height: 230px;
+    }
+    .preview .item-art { width: 180px; height: 180px; transition: transform .25s; }
+    .preview-empty { color: var(--muted); font-size: .85rem; text-align: center; max-width: 200px; }
+    .request-body { padding: 1.3rem 1.4rem 1.5rem; }
+    .summary { display: grid; grid-template-columns: auto 1fr; gap: .35rem .9rem; font-size: .88rem; margin-bottom: 1.2rem; }
+    .summary dt { color: var(--muted); }
+    .summary dd { font-weight: 600; text-align: right; }
+    .summary dd.empty { color: var(--muted); font-weight: 400; font-style: italic; }
+
+    .field { margin-bottom: .8rem; }
+    .field label { display: block; font-size: .75rem; font-weight: 600; letter-spacing: .06em; margin-bottom: .3rem; color: var(--muted); }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: .6rem .75rem; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--bg); font-size: .9rem;
+    }
+    .field textarea { resize: vertical; min-height: 70px; }
+    .row { display: grid; grid-template-columns: 1fr 90px; gap: .6rem; }
+    .hp { position: absolute; left: -9999px; }
+
+    .submit {
+      width: 100%; border: none; border-radius: 9px; padding: .85rem 1rem; margin-top: .3rem;
+      background: var(--gold); color: #1a160e; font-weight: 700; letter-spacing: .04em; cursor: pointer;
+      transition: transform .15s, filter .15s;
+    }
+    .submit:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-1px); }
+    .submit:disabled { opacity: .5; cursor: not-allowed; }
+    .form-note { font-size: .75rem; color: var(--muted); text-align: center; margin-top: .6rem; }
+    .form-error { color: var(--thread); font-size: .8rem; margin-top: .5rem; text-align: center; min-height: 1em; }
+
+    .done { text-align: center; padding: 2rem 1.4rem 2.2rem; }
+    .done h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: .4rem; }
+    .done p { color: var(--muted); font-size: .9rem; margin-bottom: 1.2rem; }
+    .linkbtn { background: none; border: 1px solid var(--line); border-radius: 8px; padding: .55rem 1rem; cursor: pointer; font-weight: 600; font-size: .85rem; }
+    .linkbtn:hover { border-color: var(--gold); color: var(--gold); }
+    .send p { margin-bottom: .9rem; }
+    .send-btns { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-bottom: 1rem; }
+    .sendbtn {
+      display: block; text-align: center; text-decoration: none; cursor: pointer;
+      background: var(--gold); color: #1a160e; border: none; border-radius: 8px;
+      padding: .65rem .5rem; font-weight: 700; font-size: .85rem;
+    }
+    .sendbtn:hover { filter: brightness(1.07); }
+    .req-text {
+      text-align: left; white-space: pre-wrap; font-family: inherit; font-size: .8rem; line-height: 1.55;
+      background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; padding: .8rem .9rem; margin-bottom: .6rem;
+    }
+    .to-line { font-size: .8rem; margin-bottom: 1rem !important; }
+
+    footer {
+      border-top: 1px dashed var(--line); padding: 1.6rem clamp(1rem, 4vw, 2.5rem);
+      color: var(--muted); font-size: .8rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem;
+    }
+    footer a { color: var(--muted); }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .request { position: static; }
+    }
+    @media (max-width: 480px) {
+      .fabric-grid { grid-template-columns: repeat(2, 1fr); gap: .7rem; }
+      .pattern-grid { grid-template-columns: 1fr 1fr; gap: .7rem; }
+      .pattern .bl { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="https://mcbuisdev.github.io/" class="logo">MCB</a>
+    <a href="https://mcbuisdev.github.io/#projects">← Back to portfolio</a>
+  </header>
+
+  <section class="hero">
+    <p class="eyebrow">Handmade from leftovers</p>
+    <h1>The Scrap <em>Shop</em></h1>
+    <p class="lede">
+      My fabric bin is overflowing, so I'm turning the leftovers into small useful things.
+      Pick a scrap you like, pick what you'd want made from it, and send me a request.
+    </p>
+    <div class="steps-strip">
+      <span><b>1</b>Choose a fabric</span>
+      <span><b>2</b>Choose a pattern</span>
+      <span><b>3</b>Send your request</span>
+    </div>
+  </section>
+
+  <main class="layout">
+    <div>
+      <!-- Step 1 -->
+      <section class="step" id="step-fabric" aria-labelledby="h-fabric">
+        <div class="step-head">
+          <div>
+            <p class="step-label">Step 1</p>
+            <h2 id="h-fabric">Pick a fabric</h2>
+          </div>
+          <div class="filters" id="filters" role="group" aria-label="Filter fabrics by color"></div>
+        </div>
+        <div class="fabric-grid" id="fabric-grid"></div>
+      </section>
+
+      <!-- Step 2 -->
+      <section class="step" id="step-pattern" aria-labelledby="h-pattern">
+        <div class="step-head">
+          <div>
+            <p class="step-label">Step 2</p>
+            <h2 id="h-pattern">Pick a pattern</h2>
+          </div>
+          <p class="hint" id="pattern-hint">Some items need a bigger scrap.</p>
+        </div>
+        <div class="pattern-grid" id="pattern-grid"></div>
+      </section>
+    </div>
+
+    <!-- Step 3 -->
+    <aside class="request" id="step-request" aria-labelledby="h-request">
+      <div class="preview" id="preview" aria-live="polite"></div>
+      <div id="request-inner">
+        <form class="request-body" id="request-form" novalidate>
+          <p class="step-label">Step 3</p>
+          <h2 id="h-request" style="font-size:1.35rem;margin-bottom:.9rem">Your request</h2>
+          <dl class="summary">
+            <dt>Fabric</dt><dd id="sum-fabric" class="empty">not chosen</dd>
+            <dt>Pattern</dt><dd id="sum-pattern" class="empty">not chosen</dd>
+          </dl>
+
+          <div class="row">
+            <div class="field">
+              <label for="f-size">Size</label>
+              <select id="f-size" name="size" disabled><option>—</option></select>
+            </div>
+            <div class="field">
+              <label for="f-qty">Qty</label>
+              <input id="f-qty" name="quantity" type="number" min="1" max="6" value="1" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-name">Your name</label>
+            <input id="f-name" name="name" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="f-contact">Email or phone</label>
+            <input id="f-contact" name="contact" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="f-notes">Notes <span style="font-weight:400" id="notes-opt">(optional)</span></label>
+            <textarea id="f-notes" name="notes" placeholder="A gift? Need it by a date? Second-choice fabric?"></textarea>
+          </div>
+          <input class="hp" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+          <button type="submit" class="submit" id="submit">Send request</button>
+          <p class="form-error" id="form-error" role="alert"></p>
+          <p class="form-note">I'll reach out to confirm.</p>
+        </form>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <span>© 2026 Morgan Cronander-Buis · Made one at a time</span>
+    <a href="https://github.com/mcbuisdev" target="_blank" rel="noopener">GitHub</a>
+  </footer>
+
+  <script src="data.js?v=4"></script>
+  <script>
+  (() => {
+    const DATA = window.SCRAP_SHOP;
+    const SIZE_RANK = { small: 1, medium: 2, large: 3, any: 9 };
+
+    /* Item silhouettes (100×100). `shape` is the mask; `detail` is drawn on top. */
+    const ART = {
+      "bowl-cozy": {
+        shape: `<path d="M18 10H42L50 22L58 10H82Q90 10 90 18V42L78 50L90 58V82Q90 90 82 90H58L50 78L42 90H18Q10 90 10 82V58L22 50L10 42V18Q10 10 18 10Z"/>`,
+        detail: `<path d="M20 15H40L50 30L60 15H80Q85 15 85 20V40L70 50L85 60V80Q85 85 80 85H60L50 70L40 85H20Q15 85 15 80V60L30 50L15 40V20Q15 15 20 15Z" class="st"/><circle cx="50" cy="50" r="14" class="st"/>`
+      },
+      "pot-holder": {
+        shape: `<rect x="14" y="20" width="72" height="70" rx="7"/>`,
+        detail: `<rect x="19" y="25" width="62" height="60" rx="4" class="st"/><path d="M19 45H81M19 65H81M39 25V85M61 25V85" class="st faint"/><path d="M22 21Q14 4 30 8Q36 12 30 21" class="loop"/>`
+      },
+      "zip-pouch": {
+        shape: `<path d="M12 28H88Q93 28 93 33V80Q93 87 86 87H14Q7 87 7 80V33Q7 28 12 28Z"/>`,
+        detail: `<path d="M9 36H91" class="zip"/><rect x="74" y="31" width="6" height="12" rx="2" class="pull"/><path d="M12 82H88" class="st"/>`
+      },
+      "drawstring-bag": {
+        shape: `<path d="M26 20Q50 15 74 20L70 32Q78 60 80 84Q80 90 74 90H26Q20 90 20 84Q22 60 30 32Z"/>`,
+        detail: `<path d="M28 32Q50 28 72 32" class="st"/><path d="M44 31Q38 46 34 54M56 31Q62 46 66 54" class="cord"/><circle cx="34" cy="55" r="2.6" class="knot"/><circle cx="66" cy="55" r="2.6" class="knot"/>`
+      },
+      "tote": {
+        shape: `<path d="M16 40H84L79 90H21Z"/><path d="M32 41V26Q32 14 44 14H56Q68 14 68 26V41" fill="none" stroke="#000" stroke-width="6"/>`,
+        detail: `<path d="M18 47H82" class="st"/><path d="M21 84H79" class="st"/>`
+      },
+      "custom": {
+        shape: `<path d="M50 4Q55 45 96 50Q55 55 50 96Q45 55 4 50Q45 45 50 4Z"/><circle cx="82" cy="18" r="8"/><circle cx="20" cy="80" r="6"/>`,
+        detail: `<path d="M50 16Q53 47 84 50Q53 53 50 84Q47 53 16 50Q47 47 50 16Z" class="st"/>`
+      },
+      "surprise-item": {
+        shape: `<rect x="14" y="40" width="72" height="50" rx="4"/><rect x="9" y="28" width="82" height="16" rx="3"/><path d="M50 28C40 10 24 14 30 24C33 28 44 28 50 28C56 28 67 28 70 24C76 14 60 10 50 28Z"/>`,
+        detail: `<path d="M50 28V90" class="ribbon"/><path d="M14 52H86" class="st"/>`
+      },
+    };
+    const SVG_STYLE = `<style>
+      .st{fill:none;stroke:rgba(255,255,255,.75);stroke-width:1.3;stroke-dasharray:2.6 1.8;filter:drop-shadow(0 0 .4px rgba(0,0,0,.6))}
+      .faint{stroke:rgba(255,255,255,.4)}
+      .loop{fill:none;stroke:#c25b3c;stroke-width:3;stroke-linecap:round}
+      .zip{stroke:#4a4440;stroke-width:3;stroke-dasharray:1.2 1}
+      .pull{fill:#b8902f;stroke:#4a4440;stroke-width:.8}
+      .cord{fill:none;stroke:#efe6d4;stroke-width:1.8;stroke-linecap:round}
+      .ribbon{stroke:#b8902f;stroke-width:7;opacity:.9}
+      .knot{fill:#efe6d4;stroke:rgba(0,0,0,.25);stroke-width:.6}
+    </style>`;
+
+    const maskUrl = (shape) =>
+      `url("data:image/svg+xml;utf8,${encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>${shape}</svg>`
+      )}")`;
+
+    function fabricBg(f) {
+      return f && f.image ? `url("${f.image}") center / cover` : (f ? f.swatch : "");
+    }
+
+    function itemArt(patternId, fabric) {
+      const art = ART[patternId];
+      const wrap = document.createElement("div");
+      wrap.className = "item-art";
+      if (!art) return wrap;
+      const fill = document.createElement("div");
+      fill.className = "fill";
+      const m = maskUrl(art.shape);
+      fill.style.webkitMaskImage = m;
+      fill.style.maskImage = m;
+      if (fabric) fill.style.background = fabricBg(fabric);
+      wrap.appendChild(fill);
+      wrap.insertAdjacentHTML("beforeend",
+        `<svg viewBox="0 0 100 100" aria-hidden="true">${SVG_STYLE}${art.detail}</svg>`);
+      return wrap;
+    }
+
+    /* ── State ── */
+    const state = { fabric: null, pattern: null, color: "all", showUsed: false };
+    const $ = (id) => document.getElementById(id);
+    const fabricById = (id) => DATA.fabrics.find((f) => f.id === id);
+    const patternById = (id) => DATA.patterns.find((p) => p.id === id);
+    const fits = (f, p) => !f || SIZE_RANK[f.size] >= SIZE_RANK[p.minSize];
+
+    /* ── Filters ── */
+    function renderFilters() {
+      const colors = [...new Set(DATA.fabrics.flatMap((f) => f.tags || []))].sort();
+      const el = $("filters");
+      el.innerHTML = "";
+      ["all", ...colors].forEach((c) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "chip"; b.textContent = c;
+        b.setAttribute("aria-pressed", String(state.color === c));
+        b.onclick = () => { state.color = c; renderFilters(); renderFabrics(); };
+        el.appendChild(b);
+      });
+      const usedCount = DATA.fabrics.filter((f) => !f.available).length;
+      if (usedCount) {
+        const t = document.createElement("label");
+        t.className = "toggle";
+        t.innerHTML = `<input type="checkbox" ${state.showUsed ? "checked" : ""}/> Show used up (${usedCount})`;
+        t.querySelector("input").onchange = (e) => { state.showUsed = e.target.checked; renderFabrics(); };
+        el.appendChild(t);
+      }
+    }
+
+    /* ── Fabrics ── */
+    function renderFabrics() {
+      const grid = $("fabric-grid");
+      grid.innerHTML = "";
+      DATA.fabrics
+        .filter((f) => f.special || state.color === "all" || (f.tags || []).includes(state.color))
+        .filter((f) => f.available || state.showUsed)
+        .forEach((f) => {
+          const b = document.createElement("button");
+          b.type = "button"; b.className = "fabric" + (f.special ? " special" : "");
+          b.disabled = !f.available;
+          b.setAttribute("aria-pressed", String(state.fabric === f.id));
+          b.setAttribute("aria-label", f.special ? "Surprise me: Morgan picks the fabric" : `${f.name}, ${f.size} scrap${f.available ? "" : ", used up"}`);
+          b.innerHTML = `<span class="sw">${f.special ? '<span class="qm">?</span>' : ""}</span><span class="nm"></span><span class="meta">${f.special ? "I'll pick for you" : f.size + " scrap"}</span>
+            ${f.available ? "" : '<span class="soldout">Used up</span>'}`;
+          b.querySelector(".sw").style.background = fabricBg(f);
+          b.querySelector(".nm").textContent = f.name;
+          b.onclick = () => selectFabric(f.id);
+          grid.appendChild(b);
+        });
+      if (!grid.children.length) grid.innerHTML = `<p class="hint">No fabrics in that color right now.</p>`;
+    }
+
+    function selectFabric(id, scroll) {
+      state.fabric = state.fabric === id && !scroll ? null : id;
+      const f = fabricById(state.fabric);
+      if (f && state.pattern && !fits(f, patternById(state.pattern))) state.pattern = null;
+      renderFabrics(); renderPatterns(); renderRequest();
+      if (state.fabric && !state.pattern && window.innerWidth > 900) {
+        $("step-pattern").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    /* ── Patterns ── */
+    function renderPatterns() {
+      const grid = $("pattern-grid");
+      const f = fabricById(state.fabric);
+      grid.innerHTML = "";
+      $("pattern-hint").textContent = f && f.special
+        ? "I'll pick a fabric that works for whatever you choose."
+        : f
+        ? `Showing what fits your ${f.size} scrap of ${f.name}.`
+        : "Some items need a bigger scrap.";
+      DATA.patterns.forEach((p) => {
+        const ok = fits(f, p);
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "pattern" + (p.special || p.custom ? " special" : "");
+        b.disabled = !ok;
+        b.setAttribute("aria-pressed", String(state.pattern === p.id));
+        const thumb = document.createElement("div");
+        thumb.className = "thumb";
+        if (p.image) {
+          thumb.innerHTML = `<img src="${p.image}" alt="" style="max-height:96px;border-radius:8px">`;
+        } else {
+          thumb.appendChild(itemArt(p.id, f));
+        }
+        b.appendChild(thumb);
+        b.insertAdjacentHTML("beforeend",
+          `<span class="nm"></span><span class="bl"></span>${ok ? "" : `<span class="why">Needs a ${p.minSize}+ scrap</span>`}`);
+        b.querySelector(".nm").textContent = p.name;
+        b.querySelector(".bl").textContent = p.blurb;
+        b.onclick = () => {
+          state.pattern = state.pattern === p.id ? null : p.id;
+          renderPatterns(); renderRequest();
+          if (state.pattern && window.innerWidth <= 900) {
+            $("step-request").scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        };
+        grid.appendChild(b);
+      });
+    }
+
+    /* ── Request card ── */
+    function renderRequest() {
+      const f = fabricById(state.fabric);
+      const p = patternById(state.pattern);
+      const prev = $("preview");
+      prev.innerHTML = "";
+      if (p) {
+        prev.appendChild(itemArt(p.id, f));
+      } else if (f) {
+        const sw = document.createElement("div");
+        sw.style.cssText = "width:150px;height:150px;border-radius:12px;box-shadow:var(--shadow)";
+        sw.style.background = fabricBg(f);
+        prev.appendChild(sw);
+      } else {
+        prev.innerHTML = `<p class="preview-empty">Pick a fabric and a pattern to see a preview here.</p>`;
+      }
+
+      const sf = $("sum-fabric"), sp = $("sum-pattern");
+      sf.textContent = f ? (f.special ? "Surprise me" : f.name) : "not chosen"; sf.classList.toggle("empty", !f);
+      sp.textContent = p ? p.name : "not chosen"; sp.classList.toggle("empty", !p);
+
+      const sel = $("f-size");
+      sel.innerHTML = "";
+      (p ? p.sizes : ["—"]).forEach((s) => sel.add(new Option(s, s)));
+      sel.disabled = !p || p.sizes.length < 2;
+      const notes = $("f-notes");
+      notes.placeholder = p && p.custom
+        ? "What would you like me to make? Size, use, anything that helps."
+        : "A gift? Need it by a date? Second-choice fabric?";
+      $("notes-opt").textContent = p && p.custom ? "(tell me your idea)" : "(optional)";
+      $("form-error").textContent = "";
+    }
+
+    /* ── Submit ── */
+    $("request-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const err = $("form-error");
+      const f = fabricById(state.fabric);
+      const p = patternById(state.pattern);
+      const name = $("f-name").value.trim();
+      const contact = $("f-contact").value.trim();
+
+      if (!f) { err.textContent = "Pick a fabric first."; $("step-fabric").scrollIntoView({ behavior: "smooth" }); return; }
+      if (!p) { err.textContent = "Pick a pattern."; $("step-pattern").scrollIntoView({ behavior: "smooth" }); return; }
+      if (!name) { err.textContent = "Add your name so I know who it's for."; $("f-name").focus(); return; }
+      if (!contact) { err.textContent = "Add an email or phone so I can follow up."; $("f-contact").focus(); return; }
+      if (p.custom && !$("f-notes").value.trim()) { err.textContent = "Tell me what you'd like in the notes."; $("f-notes").focus(); return; }
+      if (form.querySelector(".hp").value) return; // bot
+
+      const req = {
+        fabric: f.special ? "Surprise me (you pick)" : f.name,
+        pattern: p.special ? "Surprise me (you pick)" : p.custom ? "Something different" : p.name,
+        size: p.special ? "You pick" : p.custom ? "See notes" : $("f-size").value,
+        quantity: $("f-qty").value || "1", name, contact,
+        notes: $("f-notes").value.trim()
+      };
+      const lines = [
+        `Fabric: ${req.fabric}`, `Pattern: ${req.pattern}`, `Size: ${req.size}`,
+        `Quantity: ${req.quantity}`, `Name: ${req.name}`, `Contact: ${req.contact}`,
+        req.notes ? `Notes: ${req.notes}` : ""
+      ].filter(Boolean);
+
+      if (!DATA.formspreeId) {
+        showSendOptions(req, lines, requestSubject(f, p));
+        return;
+      }
+
+      const btn = $("submit");
+      btn.disabled = true; btn.textContent = "Sending…"; err.textContent = "";
+      try {
+        const res = await fetch(`https://formspree.io/f/${DATA.formspreeId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ ...req, _subject: requestSubject(f, p) })
+        });
+        if (!res.ok) throw new Error(res.status);
+        showDone(req);
+      } catch {
+        err.textContent = "That didn't send. Try again in a moment.";
+      } finally {
+        btn.disabled = false; btn.textContent = "Send request";
+      }
+    });
+
+    function requestSubject(f, p) {
+      const item = p.special ? "Surprise item" : p.name;
+      const fab = f.special ? "surprise fabric" : f.name;
+      return `Scrap Shop request: ${item} in ${fab}`;
+    }
+
+    function showDone(req) {
+      $("request-inner").innerHTML = `<div class="done">
+        <h3>Thank you, ${escapeHtml(req.name.split(" ")[0])}!</h3>
+        <p>${req.pattern.startsWith("Surprise")
+          ? "Your surprise request"
+          : `Your request for <b>${escapeHtml(req.pattern.toLowerCase())}</b>`}${req.fabric.startsWith("Surprise") ? "" : ` in <b>${escapeHtml(req.fabric)}</b>`} is on its way. I'll reach out to confirm.</p>
+        <button class="linkbtn" type="button" onclick="location.reload()">Make another request</button>
+      </div>`;
+    }
+
+    /* No form service configured: let the visitor send it however works for them. */
+    function showSendOptions(req, lines, subject) {
+      const to = DATA.fallbackEmail;
+      const body = lines.join("\n");
+      const q = (o) => Object.entries(o).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&");
+      const gmail = `https://mail.google.com/mail/?${q({ view: "cm", fs: 1, to, su: subject, body })}`;
+      const outlook = `https://outlook.live.com/mail/0/deeplink/compose?${q({ to, subject, body })}`;
+      const mailto = `mailto:${to}?${q({ subject, body })}`;
+
+      $("request-inner").innerHTML = `<div class="done send">
+        <h3>Almost done, ${escapeHtml(req.name.split(" ")[0])}!</h3>
+        <p>Send me your request one of these ways:</p>
+        <div class="send-btns">
+          <a class="sendbtn" href="${gmail}" target="_blank" rel="noopener">Gmail</a>
+          <a class="sendbtn" href="${outlook}" target="_blank" rel="noopener">Outlook</a>
+          <a class="sendbtn" href="${mailto}">Mail app</a>
+          <button class="sendbtn" type="button" id="copy-btn">Copy text</button>
+        </div>
+        <pre class="req-text" id="req-text"></pre>
+        <p class="to-line">To: <b>${escapeHtml(to)}</b></p>
+        <button class="linkbtn" type="button" onclick="location.reload()">Start over</button>
+      </div>`;
+      $("req-text").textContent = `${subject}\n\n${body}`;
+      $("copy-btn").onclick = async (ev) => {
+        const t = `${subject}\n\n${body}`;
+        try { await navigator.clipboard.writeText(t); }
+        catch {
+          const r = document.createRange(); r.selectNodeContents($("req-text"));
+          const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand("copy");
+        }
+        ev.target.textContent = "Copied ✓";
+      };
+    }
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    renderFilters(); renderFabrics(); renderPatterns(); renderRequest();
+  })();
+  </script>
+</body>
+</html>
