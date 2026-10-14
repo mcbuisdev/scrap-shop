@@ -640,16 +640,26 @@
       const to = DATA.fallbackEmail;
       const body = lines.join("\n");
       const q = (o) => Object.entries(o).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&");
-      const gmail = `https://mail.google.com/mail/?${q({ view: "cm", fs: 1, to, su: subject, body })}`;
-      const outlook = `https://outlook.live.com/mail/0/deeplink/compose?${q({ to, subject, body })}`;
-      const mailto = `mailto:${to}?${q({ subject, body })}`;
+      // Phones: open the installed apps. Desktop: open webmail compose pages.
+      const ua = navigator.userAgent;
+      const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isAndroid = /Android/.test(ua);
+      const mobile = isIOS || isAndroid;
+      const mailtoUrl = `mailto:${to}?${q({ subject, body })}`;
+      const gmail = isIOS ? `googlegmail:///co?${q({ to, subject, body })}`
+        : isAndroid ? mailtoUrl
+        : `https://mail.google.com/mail/?${q({ view: "cm", fs: 1, to, su: subject, body })}`;
+      const outlook = mobile ? `ms-outlook://compose?${q({ to, subject, body })}`
+        : `https://outlook.live.com/mail/0/deeplink/compose?${q({ to, subject, body })}`;
+      const newTab = mobile ? "" : 'target="_blank" rel="noopener"';
+      const mailto = mailtoUrl;
 
       $("request-inner").innerHTML = `<div class="done send">
         <h3>Almost done, ${escapeHtml(req.name.split(" ")[0])}!</h3>
         <p>Send me your request one of these ways:</p>
         <div class="send-btns">
-          <a class="sendbtn" href="${gmail}" target="_blank" rel="noopener">Gmail</a>
-          <a class="sendbtn" href="${outlook}" target="_blank" rel="noopener">Outlook</a>
+          <a class="sendbtn" href="${gmail}" ${newTab}>Gmail</a>
+          <a class="sendbtn" href="${outlook}" ${newTab}>Outlook</a>
           <a class="sendbtn" href="${mailto}">Mail app</a>
           <button class="sendbtn" type="button" id="copy-btn">Copy text</button>
         </div>
